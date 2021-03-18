@@ -21,7 +21,7 @@
 ;(setq estadoPrueba '(A 1 3 4 8 6 2 7 0 5 8));en 5 nodos
 ;(setq estadoPrueba '(A 2 8 1 0 4 3 7 6 5 4));27 nodos
 ;(setq estadoPrueba '(A 2 8 1 4 6 3 0 7 5 7)); 87 nodos
-(setq estadoPrueba '(A 5 6 7 4 0 8 3 2 1 5)); nodos
+;(setq estadoPrueba '(A 5 6 7 4 0 8 3 2 1 5)); nodos
 
 ;(setq estadoPrueba '(A 2 8 3 1 0 4 7 6 5 5)); 5 nodos
 ;(setq estadoPrueba '(A 2 8 3 1 6 4 7 0 5 8)) ;6 nodos
@@ -29,7 +29,7 @@
 ;(setq estadoPrueba '(A 1 3 4 8 0 5 7 2 6 5)) ; 12 nodos
 ;(setq estadoPrueba '(A 1 3 4 8 6 2 0 7 5 7)) ; 6 nodos
 ;(setq estadoPrueba '(A 3 6 4 0 1 2 8 7 5 4)) ; 45 nodos
-;(setq estadoPrueba '(A 4 2 5 0 1 3 7 6 8 4)) ;2493 nodos
+(setq estadoPrueba '(A 4 2 5 0 1 3 7 6 8 4)) ;2493 nodos
 ;(setq estadoPrueba (list 'A '0 '1 '3 '4 '2 '5 '7 '8 '6 '1)); Llegó a 75mil nodos y no
 ;(setq estadoPrueba '(A 2 1 3 8 0 4 6 7 5 5)); 2187 nodos
 ;(setq estadoPrueba '(A 5 6 7 4 0 8 3 2 1 5)); Casi 31mil nodos y no
@@ -341,10 +341,15 @@
 	(return-from a_Estrella 'fracaso) ;Esto es si nunca hubo resultado
 )
 (defun a_Estrella (nodoInicial)
-	(if (not(sePuede nodoInicial estadoMeta))
-		(return-from a_Estrella 'No_se_puede_resolver)
+	;(if (not(sePuede nodoInicial estadoMeta))
+	;	(return-from a_Estrella 'No_se_puede_resolver)
+	;)
+	(if (not (es_resoluble nodoInicial estadoMeta))
+		(progn
+			(return-from a_Estrella "Irresoluble")
+		)
+		
 	)
-	
 	(loop while (and (/= (QUEUE-SIZE abierto) 0) (< nodosExpandidos 475000))do;Mientras abierto siga con algún elemento
 		(progn 
 			;(setq actual (mejorOpcion abierto));Obtengo la mejor opción basada en f
@@ -391,19 +396,71 @@
     ruta
 )
 
-(defun sePuede (lst1 lst2)
-    (setq a 0)
-    (setq lst3 (reverse (cdr(reverse(cdr lst1)))))
-	(print lst3)
-    (setq lst4 (reverse (cdr(reverse(cdr lst2)))))
-	(print lst4)
-    (loop for x in '(0 1 2 3 4 5 6 7 8)
-        do (setq n (- (position x lst3) (position x lst4))) 
-           (incf a n)
-    )
-    (evenp a)
-)
+(defun es_resoluble (inicio meta)
+	;;funcion que revisa el numero de inversiones en los estados inicial y final para ver si el puzzle es resoluble
+	(setf lista_pares_inicial nil)
+	(setf lista_pares_meta nil)
+	(dotimes(cont 9);;inversiones del estado inicial
+		(progn
+			(if(not(eq (nth cont inicio) 0))
+				(progn
+					(setf cont1 (+ 1 cont))
+					(loop while(<= cont1 8) do
+						(progn
+							(if(not(eq(nth cont1 inicio) 0))
+								(progn
+									(push (list (nth cont inicio) 
+													(nth cont1 inicio)) 
+														lista_pares_inicial)
+								)
+							)
+							(setf cont1 (+ 1 cont1))
+						)
+					)
 
+				)
+			)
+		)
+	)
+	(dotimes(cont 9);;inversiones del estado meta
+		(progn
+			(if(not(eq (nth cont meta) 0))
+				(progn
+					(setf cont1 (+ 1 cont))
+					(loop while(<= cont1 8) do
+						(progn
+							(if(not(eq(nth cont1 meta) 0))
+								(progn
+									(push (list (nth cont meta) 
+													(nth cont1 meta)) 
+														lista_pares_meta)
+								)
+							)
+							(setf cont1 (+ 1 cont1))
+						)
+					)
+				)
+			)
+		)
+	)
+	(setf en_comun 0);;compara inversiones de los dos estados
+	(loop for x in lista_pares_inicial do
+
+		(loop for y in lista_pares_meta do
+			(progn
+				(if(and (eq (first x) (first y)) (eq (second x)(second y)) )
+					(setf en_comun (+ 1 en_comun))
+				)
+			)
+		)
+	)
+	(setf no_inversiones 0)	
+	
+	(setf no_inversiones (- (list-length lista_pares_inicial) en_comun))
+	
+	(if (evenp no_inversiones ) (return-from es_resoluble T);;si es par el num de inversiones, resuelve, si no no
+						(return-from es_resoluble NIL))
+)
 ;;=====================================================================
 (load 'Heaps.lisp)
 (defvar nodoInicial (initNodo estadoPrueba))
@@ -413,8 +470,7 @@
 (defparameter cerrado (make-hash-table :test 'equal))
 (enqueue abierto nodoInicial 0) 
 ;(print (dequeue abierto)) ;=> 'test
-;(print (QUEUE-SIZE abierto))
 (print (solver estadoPrueba))
-;(print (sePuede estadoPrueba estadoFinal))
+;(print (es_resoluble estadoPrueba estadoFinal))
 
 
