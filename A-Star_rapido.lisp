@@ -25,11 +25,11 @@
 
 ;(setq estadoPrueba '(A 2 8 3 1 0 4 7 6 5 5)); 5 nodos
 ;(setq estadoPrueba '(A 2 8 3 1 6 4 7 0 5 8)) ;6 nodos
-;(setq estadoPrueba '(A 8 3 5 2 0 6 7 1 4 5)) ; 348 nodos
+(setq estadoPrueba '(A 8 3 5 2 0 6 7 1 4 5)) ; 348 nodos
 ;(setq estadoPrueba '(A 1 3 4 8 0 5 7 2 6 5)) ; 12 nodos
 ;(setq estadoPrueba '(A 1 3 4 8 6 2 0 7 5 7)) ; 6 nodos
 ;(setq estadoPrueba '(A 3 6 4 0 1 2 8 7 5 4)) ; 45 nodos
-(setq estadoPrueba '(A 4 2 5 0 1 3 7 6 8 4)) ;2493 nodos
+;(setq estadoPrueba '(A 4 2 5 0 1 3 7 6 8 4)) ;2493 nodos No se soluciona
 ;(setq estadoPrueba (list 'A '0 '1 '3 '4 '2 '5 '7 '8 '6 '1)); Llegó a 75mil nodos y no
 ;(setq estadoPrueba '(A 2 1 3 8 0 4 6 7 5 5)); 2187 nodos
 ;(setq estadoPrueba '(A 5 6 7 4 0 8 3 2 1 5)); Casi 31mil nodos y no
@@ -59,10 +59,6 @@
 
 )
 
-;(defun set_valorH(nodoActual) ;Funcion que obtiene el valor h para el nodo
-;	(setf h (funcionHamming nodoActual))
-;)
-
 (defun initNodo(estadoTemp) ;Inicializo un nodo con sus valores
 	(setq nuevoNodo (make-nodo :estado estadoTemp
 		:gValor 0 ;Inicia con nivel 0
@@ -80,97 +76,6 @@
 	(return-from hacerCambio copia) ;Regreso la copia
 
 )
-
-
-(defun generar_sucesores2 (nodoActual)
-	(setq estado (nodo-estado nodoActual))
-	(setq operadorPadre (nodo-operador nodoActual))
-	;Los nuevos indices
-	;(setq posVacio (car (reverse estado)))
-    (setq posVacio (car (last estado)))
-	(setq arriba (- posVacio 3))
-	(setq abajo (+ posVacio 3))
-	(setf izquierda (- posVacio 1))
-	(setf derecha (+ posVacio 1))
-	(setq gValorPadre (nodo-gValor nodoActual))
-	
-	(if (and (> arriba 0) (not(eq operadorPadre 'abajo)));Si me puedo mover hacia arriba
-		(progn 
-            (setq hijoArriba (hacerCambio estado arriba posVacio))
-            (if 
-                (revisaPosibilididad hijoArriba (append abierto cerrado))
-                (progn 
-                    (setq nodoArriba (initNodo hijoArriba))
-			        (setf (nodo-gValor nodoArriba) (+ 1 gValorPadre))
-			        (setf (nodo-fValor nodoArriba) (+ (nodo-gValor nodoArriba) (funcionHamming hijoArriba)))
-			        (setf (nodo-padre nodoArriba) nodoActual)
-			        (setf (nodo-operador nodoArriba) 'arriba)
-                    (insertarAbierto nodoArriba)
-                    ;(setf abierto (push nodoArriba abierto))
-                    
-                    
-                )
-            )
-		)
-	)
-    
-	(if (and (< abajo 10) (not(eq operadorPadre 'arriba)));Si me puedo mover hacia abajo
-		(progn 
-            (setq hijoAbajo (hacerCambio estado abajo posVacio))
-            (if 
-                (revisaPosibilididad hijoAbajo (append abierto cerrado))
-                (progn 
-                    (setq nodoAbajo (initNodo hijoAbajo))
-			        (setf (nodo-gValor nodoAbajo) (+ 1 gValorPadre))
-			        (setf (nodo-fValor nodoAbajo) (+ (nodo-gValor nodoAbajo) (funcionHamming hijoAbajo)))
-			        (setf (nodo-padre nodoAbajo) nodoActual)
-			        (setf (nodo-operador nodoAbajo) 'abajo)
-                    (insertarAbierto nodoAbajo)
-                    ;(setf abierto (push nodoAbajo abierto))
-                    
-                )
-            )
-		)
-	)
-	(if (and (/= (mod izquierda 3) 0) (not(eq operadorPadre 'der)));Si me puedo mover hacia la izquierda
-		(progn 
-            (setq hijoIzq (hacerCambio estado izquierda posVacio))
-            (if 
-                (revisaPosibilididad hijoIzq (append abierto cerrado))
-                (progn 
-                    (setq nodoIzq (initNodo hijoIzq))
-			        (setf (nodo-gValor nodoIzq) (+ 1 gValorPadre))
-                    (setf (nodo-fValor nodoIzq) (+ (nodo-gValor nodoIzq) (funcionHamming hijoIzq)))
-                    (setf (nodo-padre nodoIzq) nodoActual)
-			        (setf (nodo-operador nodoIzq) 'Izq)
-                    (insertarAbierto nodoIzq)
-                    ;(setf abierto (push nodoIzq abierto))
-                    
-                )
-            )
-		)
-	)
-	(if (and (/= (mod posVacio 3) 0) (not(eq operadorPadre 'izq))) ;Si me puedo mover hacia la derecha
-		(progn 
-            (setq hijoDer (hacerCambio estado derecha posVacio))
-
-            (if 
-                (revisaPosibilididad hijoDer (append abierto cerrado))
-                (progn 
-                    (setq nodoDer (initNodo hijoDer))
-			        (setf (nodo-gValor nodoDer) (+ 1 gValorPadre))
-			        (setf (nodo-fValor nodoDer) (+ (nodo-gValor nodoDer) (funcionHamming hijoDer)))
-			        (setf (nodo-padre nodoDer) nodoActual)
-			        (setf (nodo-operador nodoDer) 'Der)
-                    (insertarAbierto nodoDer)
-                    ;(setf abierto (push nodoDer abierto))
-                    
-                )
-            )
-		)
-	)
-)
-
 
 
 (defun generar_sucesores (nodoActual)
@@ -267,18 +172,6 @@
 )
 
 
-(defun revisaPosibilididad2 (estado nodos)
-    (setq cont 0)
-    (if (null nodos) (return-from revisaPosibilididad t))
-
-    (loop while (not (null (nth cont nodos))) do
-        (if (equal estado (nodo-estado (nth cont nodos)))
-            (return-from revisaPosibilididad NIL)
-        )
-        (incf cont)
-    )
-    (return-from revisaPosibilididad t)
-)
 
 (defun revisaPosibilididad (estado nodos)
     (if (gethash estado nodos)
@@ -320,31 +213,12 @@
 	(return-from eliminarElemento m_list) ;regreso la lista
 )
 
-(defun a_Estrella2 (nodoInicial)
-	(loop while (and (not(null abierto)) (< nodosExpandidos 5000))do;Mientras abierto siga con algún elemento
-		(progn 
-			(setq actual (mejorOpcion abierto));Obtengo la mejor opción basada en f
-            (setq actual (dequeue abierto) )
-			(if (equal (nodo-estado actual) estadoMeta) ;Checo si es la meta
-				(return-from a_Estrella (imprimeRuta actual nodosExpandidos)) ;Regreso la impresion
-			)
-			(setf hijos (generar_sucesores actual));Creo la lista de hijos
-			(push actual cerrado)
-            ;(print cerrado)
-            ;Paso a cerrado el que acabo de expander
-			(setf abierto (eliminarElemento actual abierto)) ;Lo elimino de abierto
-            ;(print abierto)
-			(incf nodosExpandidos)
-			;(print nodosExpandidos) <=========
-		)
-	)
-	(return-from a_Estrella 'fracaso) ;Esto es si nunca hubo resultado
-)
+
 (defun a_Estrella (nodoInicial)
 	;(if (not(sePuede nodoInicial estadoMeta))
 	;	(return-from a_Estrella 'No_se_puede_resolver)
 	;)
-	(if (not (es_resoluble nodoInicial estadoMeta))
+	(if (not (tiene_solucion nodoInicial estadoMeta))
 		(progn
 			(return-from a_Estrella "Irresoluble")
 		)
@@ -363,7 +237,7 @@
             (setf (gethash (nodo-estado actual) cerrado) actual)
             (incf nodosExpandidos)
             ;(print (nodo-gValor actual))
-			(print nodosExpandidos)
+			;(print nodosExpandidos)
             ))
 
 		)
@@ -396,7 +270,7 @@
     ruta
 )
 
-(defun es_resoluble (inicio meta)
+(defun tiene_solucion (inicio meta)
 	;;funcion que revisa el numero de inversiones en los estados inicial y final para ver si el puzzle es resoluble
 	(setf lista_pares_inicial nil)
 	(setf lista_pares_meta nil)
@@ -458,8 +332,8 @@
 	
 	(setf no_inversiones (- (list-length lista_pares_inicial) en_comun))
 	
-	(if (evenp no_inversiones ) (return-from es_resoluble T);;si es par el num de inversiones, resuelve, si no no
-						(return-from es_resoluble NIL))
+	(if (evenp no_inversiones ) (return-from tiene_solucion T);;si es par el num de inversiones, resuelve, si no no
+						(return-from tiene_solucion NIL))
 )
 ;;=====================================================================
 (load 'Heaps.lisp)
@@ -471,6 +345,4 @@
 (enqueue abierto nodoInicial 0) 
 ;(print (dequeue abierto)) ;=> 'test
 (print (solver estadoPrueba))
-;(print (es_resoluble estadoPrueba estadoFinal))
-
 
